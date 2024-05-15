@@ -6,7 +6,7 @@ class ScheduleListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: const Text("뭘 꼬라보는거지 자기 할거 안하고 "),
+      child: const Text("약속 목록 페이지"),
     );
   }
 }

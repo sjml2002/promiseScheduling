@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:promise_schedule/screens/chatting_room_screen.dart';
 import 'package:promise_schedule/screens/schedule_list_screen.dart';
 import 'package:promise_schedule/screens/tabs_screen.dart';
 
@@ -18,7 +19,8 @@ class MainScreen extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const TabsScreen(),
+      // home: const TabsScreen(),
+      home: ChatScreen(),
     );
   }
 }

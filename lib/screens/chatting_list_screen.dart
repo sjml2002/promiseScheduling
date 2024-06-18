@@ -68,8 +68,9 @@ class ChatListScreenState extends State<ChatListScreen> {
             return GestureDetector(
               onTap: () => NavigationSet("chat_room", roomlist[idx].id),
               child: Card(
-                elevation: 5,
-                margin: EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -94,6 +95,8 @@ class ChatListScreenState extends State<ChatListScreen> {
                               roomlist[idx].overviewmsg,
                               style: TextStyle(
                                   fontSize: 16, color: Colors.grey[600]),
+                                  maxLines:1,
+                                  overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -102,7 +105,7 @@ class ChatListScreenState extends State<ChatListScreen> {
                       Container(
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.blue,
+                          color: Colors.red,
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         child: Text(

@@ -1,29 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ScheduleScreen extends StatelessWidget {
+class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("스케줄 드르륵 표"),
-        actions: [],
-      ),
-      body: const StatefulGrid(),
-    );
-  }
+  ScheduleScreenState createState() => ScheduleScreenState();
 }
 
-
-class StatefulGrid extends StatefulWidget {
-  const StatefulGrid({super.key});
-
-  @override
-  StatefulGridState createState() => StatefulGridState();
-}
-
-class StatefulGridState extends State<StatefulGrid> {
+class ScheduleScreenState extends State<ScheduleScreen> {
   double rectSize = 20;
   static const int _rows = 25;
   static const int _cols = 8;
@@ -47,9 +31,23 @@ class StatefulGridState extends State<StatefulGrid> {
     });
   }
 
+  void _passTimeMatrix() {
+    print(timeMatrix);
+  }
+
   @override
   Widget build(BuildContext context) {
-        return GridView.builder(
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("스케줄 드르륵 표"),
+            actions: [
+                TextButton(
+                  child: const Text("적용하기"),
+                  onPressed: () => _passTimeMatrix(),
+                )
+            ],
+          ),
+          body: GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: _cols,
               ),
@@ -99,6 +97,7 @@ class StatefulGridState extends State<StatefulGrid> {
               }
             },
             
+          ),
         );
   }
 }

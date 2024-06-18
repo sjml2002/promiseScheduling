@@ -37,7 +37,7 @@ class _TabsScreenState extends State<TabsScreen> {
     }
 
     return Scaffold(
-      body: activePage,
+      body: SafeArea(child: activePage),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedPageIndex,
         onTap: _selectPage,

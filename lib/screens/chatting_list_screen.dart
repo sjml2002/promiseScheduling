@@ -56,36 +56,71 @@ class ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Expanded(
-        flex: 1,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Chat List"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
         child: ListView.builder(
-            itemCount: roomlist.length,
-            itemBuilder: (context, idx) {
-              return ElevatedButton(
-                  onPressed: () => NavigationSet("chat_room", roomlist[idx].id),
+          itemCount: roomlist.length,
+          itemBuilder: (context, idx) {
+            return GestureDetector(
+              onTap: () => NavigationSet("chat_room", roomlist[idx].id),
+              child: Card(
+                elevation: 5,
+                margin: EdgeInsets.symmetric(vertical: 10),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
-                      Container(
-                        child: Text("${roomlist[idx].id} "),
-                      ),
-                      Container(
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
                         child: Image.asset(roomlist[idx].img,
-                            width: 150, height: 150, fit: BoxFit.contain),
+                            width: 60, height: 60, fit: BoxFit.cover),
                       ),
-                      Container(
-                        child: Text("  ${roomlist[idx].roomname}  "),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              roomlist[idx].roomname,
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              roomlist[idx].overviewmsg,
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
                       ),
+                      SizedBox(width: 16),
                       Container(
-                        child: Text("${roomlist[idx].overviewmsg}  "),
-                      ),
-                      Container(
-                        child: Text(roomlist[idx].talkcnt.toString()),
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Text(
+                          roomlist[idx].talkcnt.toString(),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
-                  ));
-            }),
-      )
-    ]);
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }

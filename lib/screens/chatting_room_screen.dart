@@ -8,6 +8,8 @@ class ChatScreen extends StatefulWidget {
   ChatScreen(String id, {super.key}) {
     roomid = id;
   }
+
+  @override
   ChatScreenState createState() => ChatScreenState();
 }
 
@@ -23,7 +25,7 @@ class ChatScreenState extends State<ChatScreen> {
           IconButton(
               onPressed: () => {
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const ScheduleScreen())),
+                        builder: (context) => ScheduleScreen())),
                   },
               icon: const Icon(Icons.lock_clock)),
         ],

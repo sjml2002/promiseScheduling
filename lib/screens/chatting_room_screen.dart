@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:promise_schedule/widgets/chat_messages.dart';
 import 'package:promise_schedule/widgets/new_message.dart';
+import './schedule_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   late String roomid;
@@ -18,7 +19,14 @@ class ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("id: $roomid"),
-        actions: [],
+        actions: [
+          IconButton(
+              onPressed: () => {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => const ScheduleScreen())),
+                  },
+              icon: const Icon(Icons.lock_clock)),
+        ],
       ),
       body: Column(
         children: [Expanded(child: ChatMessages()), NewMessage()],

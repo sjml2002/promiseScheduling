@@ -60,69 +60,68 @@ class ChatListScreenState extends State<ChatListScreen> {
       appBar: AppBar(
         title: Text("Chat List"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView.builder(
-          itemCount: roomlist.length,
-          itemBuilder: (context, idx) {
-            return GestureDetector(
-              onTap: () => NavigationSet("chat_room", roomlist[idx].id),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      ClipRRect(
+      body: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: roomlist.length,
+        itemBuilder: (context, idx) {
+          return GestureDetector(
+            onTap: () => NavigationSet("chat_room", roomlist[idx].id),
+            child: Card(
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.zero,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.asset(roomlist[idx].img,
+                          width: 60, height: 60, fit: BoxFit.cover),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            roomlist[idx].roomname,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            roomlist[idx].overviewmsg,
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[600]),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
                         borderRadius: BorderRadius.circular(8.0),
-                        child: Image.asset(roomlist[idx].img,
-                            width: 60, height: 60, fit: BoxFit.cover),
                       ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              roomlist[idx].roomname,
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              roomlist[idx].overviewmsg,
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[600]),
-                                  maxLines:1,
-                                  overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+                      child: Text(
+                        roomlist[idx].talkcnt.toString(),
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(width: 16),
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Text(
-                          roomlist[idx].talkcnt.toString(),
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

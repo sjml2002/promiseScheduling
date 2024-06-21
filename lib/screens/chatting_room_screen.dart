@@ -13,25 +13,35 @@ class ChatScreen extends StatefulWidget {
   ChatScreenState createState() => ChatScreenState();
 }
 
-class ChatScreenState extends State<ChatScreen> {
+class ChatScreenState extends State<ChatScreen>{
   late String roomid = widget.roomid;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: Text("id: $roomid"),
+        title: Text(roomid),
         actions: [
           IconButton(
-              onPressed: () => {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ScheduleScreen())),
-                  },
-              icon: const Icon(Icons.lock_clock)),
+            onPressed: (){
+            },
+            icon: const Icon(Icons.lock_clock),
+          ),
         ],
       ),
-      body: Column(
-        children: [Expanded(child: ChatMessages()), NewMessage()],
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! < 0){
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => ScheduleScreen(),
+                ),
+            );
+          }
+        },
+        child: Column(
+          children: [Expanded(child: ChatMessages()), NewMessage()],
+        ),
       ),
     );
   }

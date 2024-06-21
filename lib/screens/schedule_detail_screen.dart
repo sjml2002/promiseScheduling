@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import './chatting_room_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -47,7 +48,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 )
             ],
           ),
-          body: GridView.builder(
+          body: GestureDetector(
+            onHorizontalDragEnd: (details){
+              if (details.primaryVelocity! > 0){
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen('roomid'), //id issue
+                    ),
+                );
+              }
+            },
+          child: GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: _cols,
               ),
@@ -98,7 +109,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             },
             
           ),
-        );
+        ));
   }
 }
 

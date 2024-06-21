@@ -4,7 +4,7 @@ import 'package:promise_schedule/widgets/new_message.dart';
 import './schedule_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  late String roomid;
+  late final String roomid;
   ChatScreen(String id, {super.key}) {
     roomid = id;
   }
@@ -25,7 +25,7 @@ class ChatScreenState extends State<ChatScreen> {
           IconButton(
               onPressed: () => {
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ScheduleScreen())),
+                        builder: (context) => ScheduleScreen(roomid))),
                   },
               icon: const Icon(Icons.lock_clock)),
         ],

@@ -25,7 +25,7 @@ class ChatScreenState extends State<ChatScreen> {
           IconButton(
               onPressed: () => {
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ScheduleScreen())),
+                        builder: (context) => ScheduleScreen(roomid))),
                   },
               icon: const Icon(Icons.lock_clock)),
         ],

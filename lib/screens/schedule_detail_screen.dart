@@ -1,10 +1,9 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ScheduleScreen extends StatefulWidget {
-  late String roomid;
+  late final String roomid;
   ScheduleScreen(String id, {super.key}) {
     roomid = id;
   }
@@ -17,6 +16,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   static const int _rows = 25;
   static const int _cols = 8;
   final userSize = 10;
+  String userId = "jeheely";
 
   //이거 int로 하면 안되고 string 배열로 또 해서 id값 하나하나씩 비교 해야함
 
@@ -63,7 +63,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   void initState() {
+    //super.initState();
     print(widget.roomid);
+    setScheduling();
   }
 
   void selectUpdate(int r, int c) {
@@ -77,26 +79,67 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   void _passTimeMatrix() {
-    print(timeMatrix + inputTimeMatrix);
-
     //FireStore insert
-    FirebaseFirestore.instance
-        .collection('schedule_list')
-        .doc(widget.roomid)
-        .set({
-      'scheduleData': timeMatrix + inputTimeMatrix,
-      'weeks': '24/06/17 ~ 24/06/23',
-    });
 
-    //schedule view update
+    CollectionReference scheduleListCollection =
+        FirebaseFirestore.instance.collection('schedule_list');
+    scheduleListCollection.doc(widget.roomid).set({
+      'user:$userId': json.encode(inputTimeMatrix),
+      'weeks': '24/06/17 ~ 24/06/23',
+    }, SetOptions(merge: true)) //기존 필드값은 건들이지 않도록
+    .then((value) {
+      print("scheduling setting!"); //debug
+    }).catchError((error) => print("Firebase add error: $error"));
+  }
+
+  void setScheduling() {
     Stream documentStream = FirebaseFirestore.instance
-        .collection('schedule_list')
+        .collection("schedule_list")
         .doc(widget.roomid)
         .snapshots();
     documentStream.listen((event) {
-      Map<String, dynamic> data = jsonDecode(event);
-      print(data);
+      //우선 초기화
+      List<List<int>> resultMatrix = [];
+      List<List<int>> resultInputMatrix = [];
+      for (int r = 0; r < _rows; r++) {
+        resultMatrix.add([]);
+        resultInputMatrix.add([]);
+        for (int c = 0; c < _cols; c++) {
+          resultMatrix[r].add(0);
+          resultInputMatrix[r].add(0);
+        }
+      }
+      //그 다음에 event 읽기
+      if (event.exists) {
+        Map<String, dynamic> mapdata = event.data() as Map<String, dynamic>;
+        mapdata.forEach((key, value) {
+          if (key == "user:$userId") {
+            //현재 자신이라면 elevate되게 특별한 값 == -1 넣기
+            List<List<int>> resMatrix = List_dynamic_to_Matrix(json.decode(value));
+            resultInputMatrix = resMatrix;
+          } else if (key.contains("user:")) {
+            List<List<int>> resMatrix = List_dynamic_to_Matrix(json.decode(value));
+            for (int r = 0; r < _rows; r++) {
+              for (int c = 0; c < _cols; c++) {
+                resultMatrix[r][c] += resMatrix[r][c];
+              }
+            }
+          }
+        });
+        setState(() {
+          inputTimeMatrix = resultInputMatrix;
+          timeMatrix = resultMatrix;
+        });
+      } else {
+        print("not yet...");
+      }
     });
+  }
+
+  List<List<int>> List_dynamic_to_Matrix(List<dynamic> data) {
+    List<List<int>> ret =
+        data.map((innerList) => List<int>.from(innerList)).toList();
+    return (ret);
   }
 
   @override
@@ -155,19 +198,51 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             int userCnt = timeMatrix[r][c] + inputTimeMatrix[r][c];
             return GestureDetector(
               onTap: () => selectUpdate(r, c),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 0.2),
-                  color: userCnt > 0
-                      ? Colors.green.withOpacity((userCnt / 10).toDouble())
-                      : Colors.white,
-                  //
-                ),
-              ),
+              child: inputTimeMatrix[r][c] == 1 ?
+                MyScheduleContainer(userCnt) :
+                OtherScheduleContainer(userCnt),
             );
           }
         },
       ),
+    );
+  }
+}
+
+class OtherScheduleContainer extends StatelessWidget {
+  late final int userCnt;
+  OtherScheduleContainer(int uc, {super.key}) {
+    userCnt = uc;
+  }
+
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 0.2),
+        color: userCnt > 0
+            ? Colors.green.withOpacity((userCnt / 10).toDouble())
+            : Colors.white,
+      ),
+      child: userCnt > 0 ? Text("$userCnt 명") : null,
+    );
+  }
+}
+
+class MyScheduleContainer extends StatelessWidget {
+  late final int userCnt;
+  MyScheduleContainer(int uc, {super.key}) {
+    userCnt = uc;
+  }
+
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 0.2),
+          color: userCnt > 0
+              ? Colors.purple.withOpacity((userCnt / 10).toDouble())
+              : Colors.white,
+      ),
+        child: userCnt > 0 ? Text("$userCnt 명") : null,
     );
   }
 }

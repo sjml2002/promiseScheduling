@@ -1,4 +1,5 @@
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:promise_schedule/screens/calendar_screen.dart';
 import 'package:promise_schedule/screens/chatting_list_screen.dart';
@@ -25,7 +26,17 @@ class _TabsScreenState extends State<TabsScreen> {
   final List<AppBar> _appBars = [
     AppBar(
       title: Text("언제 만나"),
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+      actions: [
+        IconButton(
+          onPressed: () {},
+          icon: Icon(Icons.settings),
+        ),
+        IconButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+            },
+            icon: const Icon(Icons.exit_to_app))
+      ],
     ),
     AppBar(
       title: Text("달력"),

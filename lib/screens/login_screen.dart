@@ -3,10 +3,24 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import "package:firebase_auth/firebase_auth.dart";
+import 'package:path_provider/path_provider.dart';
 import 'package:promise_schedule/screens/user_image_picker.dart';
+import 'package:uri_to_file/uri_to_file.dart';
 
 final _fireBase = FirebaseAuth.instance;
+
+Future<File> getImageFileFromAssets(String path) async {
+  final byteData = await rootBundle.load('assets/$path');
+
+  final file = File('${(await getTemporaryDirectory()).path}/$path');
+  await file.create(recursive: true);
+  await file.writeAsBytes(byteData.buffer
+      .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+
+  return file;
+}
 
 class AuthScreen extends StatefulWidget {
   @override
@@ -43,7 +57,8 @@ class _AuthScreenState extends State<AuthScreen> {
               email: _enteredEmail, password: _enteredPassword);
         } else {
           if (_selectedImage == null) {
-            return;
+            _selectedImage = await getImageFileFromAssets(
+                "images/schedule_preview_sample.jpg");
           }
 
           setState(() {

@@ -1,42 +1,39 @@
-import 'package:flutter/material.dart';
-import 'package:promise_schedule/screens/chatting_room_screen.dart';
-import 'package:promise_schedule/screens/login_screen.dart';
-import 'package:promise_schedule/screens/schedule_list_screen.dart';
-import 'package:promise_schedule/screens/tabs_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-final _fireBase = FirebaseAuth.instance;
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:promise_schedule/screens/login_screen.dart';
+import 'package:promise_schedule/screens/tabs_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await _fireBase.signInWithEmailAndPassword(
-  //     email: "jason808@naver.com", password: "password");
-
-  // Stream loginStream = FirebaseAuth.instance.authStateChanges();
-  // if(login)
-
-  runApp(const MainScreen());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MainApp());
 }
 
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return TabsScreen();
+          } else {
+            return AuthScreen();
+          }
+        },
       ),
-      debugShowCheckedModeBanner: false,
-      home: const TabsScreen(),
+      theme: ThemeData().copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 63, 17, 177),
+        ),
+      ),
     );
-    // home: const TabsScreen(),
-    // home: LoginScreen());
   }
 }

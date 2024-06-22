@@ -2,6 +2,8 @@
 {
     "id": "1",
     "roomname" : "김준상의 개인톡",
+    "users": ["js2002", "jason808", "jeheely"],
+    "mode": "일회성만남",
     "overviewmsg" : "kimjunsang.PDF",
     "img": "chat_list_img1.png",
     "talkcnt" : "0"
@@ -9,6 +11,8 @@
 {
     "id": "2",
     "roomname" : "플러터스터디",
+    "users": ["js2002", "jeheely"],
+    "mode": "정기모임",
     "overviewmsg" : "사진을 보냈습니다.",
     "img": "chat_list_img2.png",
     "talkcnt" : "1"
@@ -16,6 +20,8 @@
 {
     "id" : "3",
     "roomname" : "박정수형",
+    "users": ["jason808"],
+    "mode": "정기모임",
     "overviewmsg" : "9,000원 받기 완료! *(안내) 받은 분은 매일 이자 혜택 및 송금 수수료 무료 업데이트 대상자예요. ",
     "img": "chat_list_img3.png",
     "talkcnt" : "4"

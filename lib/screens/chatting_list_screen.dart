@@ -2,14 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import './chatting_room_screen.dart';
-
-class ChatlistData {
-  late String id;
-  late String roomname;
-  late String overviewmsg; //미리보기 메세지
-  late String img; //채팅방 대표 이미지 (URL, assets 폴더 안에 있음)
-  late int talkcnt; //몇개의 톡이 와있는가
-}
+import '../DTO/chat_room.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -17,7 +10,7 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class ChatListScreenState extends State<ChatListScreen> {
-  List<ChatlistData> roomlist = [];
+  List<ChatRoom> roomlist = [];
 
   String jsondataUrl = "assets/json/chat_list_dummy_data.json";
 
@@ -27,12 +20,20 @@ class ChatListScreenState extends State<ChatListScreen> {
     final List decodedata = await json.decode(jsonString);
     setState(() {
       for (Map<String, dynamic> data in decodedata) {
-        ChatlistData pushdata = ChatlistData();
-        pushdata.id = data["id"];
-        pushdata.roomname = data["roomname"];
-        pushdata.overviewmsg = data["overviewmsg"];
-        pushdata.img = "assets/images/${data["img"]}";
-        pushdata.talkcnt = int.parse(data["talkcnt"]);
+        ChatRoom pushdata = ChatRoom();
+        pushdata.setID(data["id"]);
+        pushdata.setName(data["roomname"]);
+        pushdata.setMode(data["mode"]);
+        pushdata.setImg("assets/images/${data["img"]}");
+        pushdata.setOvm(data["overviewmsg"]);
+        pushdata.setTalkCnt(int.parse(data["talkcnt"]));
+        // print(data["users"]); //debug
+        // print(data["users"].runtimeType); //debug
+        // List<dynamic> arr = json.decode(data["users"]);
+        // print(arr.runtimeType); //debug
+        // for (var usr in arr) {
+        //   pushdata.appendUser(usr.toString());
+        // }
         roomlist.add(pushdata);
       }
     });
@@ -65,7 +66,7 @@ class ChatListScreenState extends State<ChatListScreen> {
         itemCount: roomlist.length,
         itemBuilder: (context, idx) {
           return GestureDetector(
-            onTap: () => NavigationSet("chat_room", roomlist[idx].id),
+            onTap: () => NavigationSet("chat_room", roomlist[idx].getRoomId()),
             child: Card(
               margin: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
@@ -77,7 +78,7 @@ class ChatListScreenState extends State<ChatListScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.asset(roomlist[idx].img,
+                      child: Image.asset(roomlist[idx].getImg(),
                           width: 60, height: 60, fit: BoxFit.cover),
                     ),
                     SizedBox(width: 16),
@@ -86,13 +87,13 @@ class ChatListScreenState extends State<ChatListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            roomlist[idx].roomname,
+                            roomlist[idx].getRoomName(),
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           SizedBox(height: 8),
                           Text(
-                            roomlist[idx].overviewmsg,
+                            roomlist[idx].getOvm(),
                             style: TextStyle(
                                 fontSize: 16, color: Colors.grey[600]),
                             maxLines: 1,
@@ -109,7 +110,7 @@ class ChatListScreenState extends State<ChatListScreen> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Text(
-                        roomlist[idx].talkcnt.toString(),
+                        roomlist[idx].getTalkCnt().toString(),
                         style: TextStyle(
                             fontSize: 16,
                             color: Colors.white,

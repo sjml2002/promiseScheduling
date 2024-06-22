@@ -16,7 +16,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   static const int _rows = 25;
   static const int _cols = 8;
   final userSize = 10;
-  String userId = "jeheely";
+  String userId = "jason808";
 
   //이거 int로 하면 안되고 string 배열로 또 해서 id값 하나하나씩 비교 해야함
 

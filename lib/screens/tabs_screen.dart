@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:promise_schedule/screens/calendar_screen.dart';
 import 'package:promise_schedule/screens/chatting_list_screen.dart';
@@ -39,24 +41,17 @@ class _TabsScreenState extends State<TabsScreen> {
       ],
     ),
     AppBar(
-      title: Text("달력"),
+      title: Text("채팅목록"),
       actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
     ),
     AppBar(
-      title: Text("채팅 목록"),
+      title: Text("달력"),
       actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
     ),
     AppBar(
       title: Text("친구 목록"),
       actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
     )
-  ];
-
-  final List<String> _appBarTitles = [
-    '약속 목록',
-    '채팅 목록',
-    '달력',
-    '내 정보',
   ];
 
   final List<IconData> _floatingButtonIcons = [
@@ -72,42 +67,16 @@ class _TabsScreenState extends State<TabsScreen> {
     });
   }
 
-  void _showModal(BuildContext context) {
-    TextEditingController titleController = TextEditingController();
-
+///////////////// 방 만들기 ////////////
+  void _createRoomWithModal(BuildContext context) {
     showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('제목 입력'),
-          content: TextField(
-            controller: titleController,
-            decoration: InputDecoration(
-              labelText: '제목',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // 모달 창 닫기
-              },
-              child: Text('취소'),
-            ),
-            TextButton(
-              onPressed: () {
-                // 입력한 제목을 저장하거나 사용할 로직 추가
-                print('입력한 제목: ${titleController.text}');
-                Navigator.of(context).pop(); // 모달 창 닫기
-              },
-              child: Text('저장'),
-            ),
-          ],
-        );
-      },
-    );
+        context: context,
+        builder: (BuildContext context) {
+          return const createRoom();
+        });
   }
 
+////////////// Widget build  //////////////////////
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,7 +87,7 @@ class _TabsScreenState extends State<TabsScreen> {
       floatingActionButton: FloatingActionButton(
         shape: CircleBorder(),
         onPressed: () {
-          _showModal(context);
+          _createRoomWithModal(context);
         },
         child: Icon(Icons.add),
       ),
@@ -134,6 +103,214 @@ class _TabsScreenState extends State<TabsScreen> {
         activeColor: Colors.white,
         inactiveColor: Colors.white70,
       ),
+    );
+  }
+}
+
+
+////////// 방 만들기 ///////////
+
+class createRoom extends StatefulWidget {
+  const createRoom({super.key});
+
+  @override
+  _createRoomState createState() => _createRoomState();
+}
+
+class _createRoomState extends State<createRoom> {
+  List<String> selectedUsers = [];
+  List<String> foundUsers = [];
+  String searchUserEmail = '';
+  String modeOption = "정기모임";
+  String roomname = '';
+
+  Future<void> searchUser(String userEmail) async {
+    foundUsers = []; //초기화
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: userEmail)
+        .get()
+        .then((usrData) {
+      if (usrData.docs.isEmpty) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('User not found')));
+      } else {
+        //email은 무조건 한명 이므로 forEach 할 필요 없음
+        setState(() => foundUsers.add(userEmail));
+        print("user found!!!"); //debug
+      }
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Something Error'),
+      ));
+    });
+  }
+
+  Future<void> _createRoomOnFireStore() async {
+    if (roomname == '') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('방 제목을 입력하세요.'),
+      ));
+      return ;
+    }
+    if (selectedUsers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('한 명 이상의 친구를 초대하세요'),
+      ));
+      return ;
+    }
+    //roomid 자동 지정
+    FirebaseFirestore.instance
+      .collection('rooms')
+      .add({
+        'roomname': roomname,
+        'users': selectedUsers,
+        'mode': modeOption,
+      })
+      .then((value) => print(value))
+      .catchError((error) => print("create Room Error! $error"));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('약속의 옵션'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              child: TextField(
+                decoration: const InputDecoration(
+                  labelText: '방 이름',
+                ),
+                onChanged: (value) {
+                  roomname = value;
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            RadioListTile<String>(
+              title: const Text('정기모임'),
+              value: "정기모임",
+              groupValue: modeOption,
+              onChanged: (value) {
+                setState(() {
+                  modeOption = value!;
+                });
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('일회성만남'),
+              value: "일회성만남",
+              groupValue: modeOption,
+              onChanged: (value) {
+                setState(() {
+                  modeOption = value!;
+                });
+              },
+            ),
+            Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Enter user email to search',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () => searchUser(searchUserEmail),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    searchUserEmail = value;
+                  },
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: 300,
+                  height: 100,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: foundUsers.length,
+                    itemBuilder: (context, index) {
+                      String email = foundUsers[index];
+                      bool isSelected = selectedUsers.contains(email);
+                      return ListTile(
+                        title: Text(email),
+                        trailing: IconButton(
+                          icon: Icon(
+                            isSelected
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (isSelected) {
+                                selectedUsers.remove(email);
+                              } else {
+                                selectedUsers.add(email);
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                  child: Text("초대된 사람들"),
+                ),
+                Container(
+                  width: 300,
+                  height: 400,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: selectedUsers.length,
+                    itemBuilder: (context, index) {
+                      String email = selectedUsers[index];
+                      bool isSelected = selectedUsers.contains(email);
+                      return ListTile(
+                        title: Text(email),
+                        trailing: IconButton(
+                          icon: Icon(
+                            isSelected
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (isSelected) {
+                                selectedUsers.remove(email);
+                              } else {
+                                selectedUsers.add(email);
+                              }
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        if (selectedUsers.isNotEmpty)
+          ElevatedButton(
+            onPressed: () {
+              _createRoomOnFireStore();
+              Navigator.of(context).pop();
+            },
+            child: const Text('방 만들기'),
+          ),
+      ],
     );
   }
 }

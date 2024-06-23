@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -16,7 +17,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
   static const int _rows = 25;
   static const int _cols = 8;
   final userSize = 10;
-  String userId = "jeheely";
+  String userId = FirebaseAuth.instance.currentUser!.uid;
 
   //이거 int로 하면 안되고 string 배열로 또 해서 id값 하나하나씩 비교 해야함
 

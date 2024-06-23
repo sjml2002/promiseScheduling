@@ -7,7 +7,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import "package:firebase_auth/firebase_auth.dart";
 import 'package:path_provider/path_provider.dart';
 import 'package:promise_schedule/screens/user_image_picker.dart';
-import 'package:uri_to_file/uri_to_file.dart';
 
 final _fireBase = FirebaseAuth.instance;
 
@@ -60,11 +59,9 @@ class _AuthScreenState extends State<AuthScreen> {
             _selectedImage = await getImageFileFromAssets(
                 "images/schedule_preview_sample.jpg");
           }
-
           setState(() {
             _isAuthenticating = true;
           });
-
           final userCredential = await _fireBase.createUserWithEmailAndPassword(
               email: _enteredEmail, password: _enteredPassword);
 

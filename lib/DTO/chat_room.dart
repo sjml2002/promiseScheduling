@@ -1,7 +1,7 @@
 class ChatRoom {
   late String _roomid;
   late String _roomname;
-  late List<String> _users;
+  late List<String> _users = [];
   late String _mode; //일회성만남, 정기모임
   late String _overviewmsg;
   late String _img;

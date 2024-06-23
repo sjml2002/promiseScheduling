@@ -3,24 +3,29 @@ import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.da
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:promise_schedule/DTO/chat_room.dart';
 import 'package:promise_schedule/screens/calendar_screen.dart';
 import 'package:promise_schedule/screens/chatting_list_screen.dart';
 import 'package:promise_schedule/screens/profile_screen.dart';
 import 'package:promise_schedule/screens/schedule_list_screen.dart';
 
 class TabsScreen extends StatefulWidget {
-  const TabsScreen({super.key});
+  late Future<List<ChatRoom>> userRoomList;
+  TabsScreen(Future<List<ChatRoom>> roomlist, {super.key}) {
+    userRoomList = roomlist;
+  }
 
   @override
   State<TabsScreen> createState() => _TabsScreenState();
 }
 
 class _TabsScreenState extends State<TabsScreen> {
+  //late var userRoomList = widget.userRoomList;
   int _selectedPageIndex = 0;
 
-  final List<Widget> _pages = [
-    ScheduleListScreen(),
-    ChatListScreen(),
+  late final List<Widget> _pages = [
+    ScheduleListScreen(widget.userRoomList),
+    ChatListScreen(widget.userRoomList), //userRoomList
     CalendarScreen(),
     UserConfigScreen(),
   ];
@@ -61,7 +66,12 @@ class _TabsScreenState extends State<TabsScreen> {
     Icons.settings,
   ];
 
-  void _selectPage(int index) {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _selectPage(int index) async {
     setState(() {
       _selectedPageIndex = index;
     });

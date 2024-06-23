@@ -21,13 +21,6 @@ class ChatScreenState extends State<ChatScreen>{
     return Scaffold(
       appBar: AppBar(
         title: Text(roomid),
-        actions: [
-          IconButton(
-            onPressed: (){
-            },
-            icon: const Icon(Icons.lock_clock),
-          ),
-        ],
       ),
       body: GestureDetector(
         onHorizontalDragEnd: (details) {

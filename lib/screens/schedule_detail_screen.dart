@@ -89,7 +89,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       'user:$userId': json.encode(inputTimeMatrix),
       'weeks': '24/06/17 ~ 24/06/23',
     }, SetOptions(merge: true)) //기존 필드값은 건들이지 않도록
-    .then((value) {
+        .then((value) {
       print("scheduling setting!"); //debug
     }).catchError((error) => print("Firebase add error: $error"));
   }
@@ -116,10 +116,12 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         Map<String, dynamic> mapdata = event.data() as Map<String, dynamic>;
         mapdata.forEach((key, value) {
           if (key == "user:$userId") {
-            List<List<int>> resMatrix = List_dynamic_to_Matrix(json.decode(value));
+            List<List<int>> resMatrix =
+                List_dynamic_to_Matrix(json.decode(value));
             resultInputMatrix = resMatrix;
           } else if (key.contains("user:")) {
-            List<List<int>> resMatrix = List_dynamic_to_Matrix(json.decode(value));
+            List<List<int>> resMatrix =
+                List_dynamic_to_Matrix(json.decode(value));
             for (int r = 0; r < _rows; r++) {
               for (int c = 0; c < _cols; c++) {
                 resultMatrix[r][c] += resMatrix[r][c];
@@ -160,13 +162,16 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           if (details.primaryVelocity! > 0) {
             Navigator.of(context).pushReplacement(
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => ChatScreen('roomid'), // 적절한 roomid를 여기에 넣어주세요
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    ChatScreen(widget.roomid),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
                   const begin = Offset(-1.0, 0.0);
                   const end = Offset.zero;
                   const curve = Curves.easeInOut;
 
-                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
                   var offsetAnimation = animation.drive(tween);
 
                   return SlideTransition(
@@ -179,8 +184,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           }
         },
         child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: _cols,
+            childAspectRatio: MediaQuery.of(context).size.width /
+              (MediaQuery.of(context).size.height / 4),
           ),
           itemCount: _rows * _cols,
           itemBuilder: (context, index) {
@@ -200,7 +207,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 child: Center(
                   child: Text(
                     _daysOfWeek[index - 1],
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                 ),
               );
@@ -216,7 +226,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                 child: Center(
                   child: Text(
                     _timesOfDay[rowIndex],
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                 ),
               );
@@ -224,9 +237,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
               int userCnt = timeMatrix[r][c] + inputTimeMatrix[r][c];
               return GestureDetector(
                 onTap: () => selectUpdate(r, c),
-                child: inputTimeMatrix[r][c] == 1 ?
-                  MyScheduleContainer(userCnt) :
-                  OtherScheduleContainer(userCnt),
+                child: inputTimeMatrix[r][c] == 1
+                    ? MyScheduleContainer(userCnt)
+                    : OtherScheduleContainer(userCnt),
               );
             }
           },
@@ -235,6 +248,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 }
+
 class OtherScheduleContainer extends StatelessWidget {
   late final int userCnt;
   OtherScheduleContainer(int uc, {super.key}) {
@@ -242,23 +256,28 @@ class OtherScheduleContainer extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
-    return  AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.all(1.0),
-                  decoration: BoxDecoration(
-                    color: userCnt > 0
-                          ? Colors.green.withOpacity((userCnt / 10).toDouble())
-                          : Colors.white
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.black.withOpacity(0.2)),
-                  ),
-                  child: Center(
-                    child: userCnt > 0 ? Text(
-                      "Text("$userCnt 명")",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ) : null,
-                  ),
-                );
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.all(1.0),
+      decoration: BoxDecoration(
+        color: userCnt > 0
+            ? Colors.green.withOpacity((userCnt / 10).toDouble())
+            : Colors.white,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.black.withOpacity(0.2)),
+      ),
+      child: Center(
+        child: userCnt > 0
+            ? Text(
+                "Text($userCnt 명)",
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              )
+            : null,
+      ),
+    );
   }
 }
 
@@ -269,22 +288,27 @@ class MyScheduleContainer extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
-    return  AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.all(1.0),
-                  decoration: BoxDecoration(
-                    color: userCnt > 0
-                          ? Colors.purple.withOpacity((userCnt / 10).toDouble())
-                          : Colors.white
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.black.withOpacity(0.2)),
-                  ),
-                  child: Center(
-                    child: userCnt > 0 ? Text(
-                      "Text("$userCnt 명")",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ) : null,
-                  ),
-                );
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.all(1.0),
+      decoration: BoxDecoration(
+        color: userCnt > 0
+            ? Colors.purple.withOpacity((userCnt / 10).toDouble())
+            : Colors.white,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.black.withOpacity(0.2)),
+      ),
+      child: Center(
+        child: userCnt > 0
+            ? Text(
+                "Text($userCnt 명)",
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              )
+            : null,
+      ),
+    );
   }
 }

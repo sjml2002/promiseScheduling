@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import './chatting_room_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -115,7 +116,6 @@ class ScheduleScreenState extends State<ScheduleScreen> {
         Map<String, dynamic> mapdata = event.data() as Map<String, dynamic>;
         mapdata.forEach((key, value) {
           if (key == "user:$userId") {
-            //현재 자신이라면 elevate되게 특별한 값 == -1 넣기
             List<List<int>> resMatrix = List_dynamic_to_Matrix(json.decode(value));
             resultInputMatrix = resMatrix;
           } else if (key.contains("user:")) {
@@ -155,61 +155,86 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           )
         ],
       ),
-      body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: _cols,
-          childAspectRatio: MediaQuery.of(context).size.width /
-              (MediaQuery.of(context).size.height / 4),
-        ),
-        itemCount: _rows * _cols,
-        itemBuilder: (context, index) {
-          int r = index ~/ _cols;
-          int c = index % _cols;
-          if (index == 0) {
-            // 첫 번째 칸은 빈 칸으로 둡니다.
-            return Container();
-          } else if (index < _cols) {
-            // 첫 번째 행에 요일을 표시합니다.
-            return Container(
-              margin: const EdgeInsets.all(1.0),
-              color: Colors.grey[300],
-              child: Center(
-                child: Text(
-                  _daysOfWeek[index - 1],
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! > 0) {
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => ChatScreen('roomid'), // 적절한 roomid를 여기에 넣어주세요
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(-1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
+                },
               ),
-            );
-          } else if ((index) % (_cols) == 0) {
-            // 첫 번째 열에 시간을 표시합니다.
-            int rowIndex = (index - 1) ~/ (_cols);
-            return Container(
-              margin: const EdgeInsets.all(1.0),
-              color: Colors.grey[300],
-              child: Center(
-                child: Text(
-                  _timesOfDay[rowIndex],
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            );
-          } else {
-            int userCnt = timeMatrix[r][c] + inputTimeMatrix[r][c];
-            return GestureDetector(
-              onTap: () => selectUpdate(r, c),
-              child: inputTimeMatrix[r][c] == 1 ?
-                MyScheduleContainer(userCnt) :
-                OtherScheduleContainer(userCnt),
             );
           }
         },
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _cols,
+          ),
+          itemCount: _rows * _cols,
+          itemBuilder: (context, index) {
+            int r = index ~/ _cols;
+            int c = index % _cols;
+            if (index == 0) {
+              // 첫 번째 칸은 빈 칸으로 둡니다.
+              return Container();
+            } else if (index < _cols) {
+              // 첫 번째 행에 요일을 표시합니다.
+              return Container(
+                margin: const EdgeInsets.all(1.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue[300],
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Center(
+                  child: Text(
+                    _daysOfWeek[index - 1],
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              );
+            } else if ((index) % (_cols) == 0) {
+              // 첫 번째 열에 시간을 표시합니다.
+              int rowIndex = (index - 1) ~/ (_cols);
+              return Container(
+                margin: const EdgeInsets.all(1.0),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 204, 93, 93),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Center(
+                  child: Text(
+                    _timesOfDay[rowIndex],
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              );
+            } else {
+              int userCnt = timeMatrix[r][c] + inputTimeMatrix[r][c];
+              return GestureDetector(
+                onTap: () => selectUpdate(r, c),
+                child: inputTimeMatrix[r][c] == 1 ?
+                  MyScheduleContainer(userCnt) :
+                  OtherScheduleContainer(userCnt),
+              );
+            }
+          },
+        ),
       ),
     );
   }
 }
-
 class OtherScheduleContainer extends StatelessWidget {
   late final int userCnt;
   OtherScheduleContainer(int uc, {super.key}) {
@@ -217,15 +242,23 @@ class OtherScheduleContainer extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 0.2),
-        color: userCnt > 0
-            ? Colors.green.withOpacity((userCnt / 10).toDouble())
-            : Colors.white,
-      ),
-      child: userCnt > 0 ? Text("$userCnt 명") : null,
-    );
+    return  AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.all(1.0),
+                  decoration: BoxDecoration(
+                    color: userCnt > 0
+                          ? Colors.green.withOpacity((userCnt / 10).toDouble())
+                          : Colors.white
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.black.withOpacity(0.2)),
+                  ),
+                  child: Center(
+                    child: userCnt > 0 ? Text(
+                      "Text("$userCnt 명")",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ) : null,
+                  ),
+                );
   }
 }
 
@@ -236,14 +269,22 @@ class MyScheduleContainer extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 0.2),
-          color: userCnt > 0
-              ? Colors.purple.withOpacity((userCnt / 10).toDouble())
-              : Colors.white,
-      ),
-        child: userCnt > 0 ? Text("$userCnt 명") : null,
-    );
+    return  AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.all(1.0),
+                  decoration: BoxDecoration(
+                    color: userCnt > 0
+                          ? Colors.purple.withOpacity((userCnt / 10).toDouble())
+                          : Colors.white
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.black.withOpacity(0.2)),
+                  ),
+                  child: Center(
+                    child: userCnt > 0 ? Text(
+                      "Text("$userCnt 명")",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ) : null,
+                  ),
+                );
   }
 }

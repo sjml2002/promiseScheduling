@@ -20,18 +20,34 @@ class ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("id: $roomid"),
-        actions: [
-          IconButton(
-              onPressed: () => {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ScheduleScreen(roomid))),
-                  },
-              icon: const Icon(Icons.lock_clock)),
-        ],
+        title: Text(roomid),
       ),
-      body: Column(
-        children: [Expanded(child: ChatMessages()), NewMessage()],
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! < 0) {
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => const ScheduleScreen(),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
+                },
+              ),
+            );
+          }
+        },
+        child: Column(
+          children: [Expanded(child: ChatMessages()), NewMessage()],
+        ),
       ),
     );
   }

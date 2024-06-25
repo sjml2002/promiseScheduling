@@ -1,13 +1,20 @@
 import "package:flutter/material.dart";
+import "package:promise_schedule/DTO/chat_room.dart";
 import "package:promise_schedule/screens/schedule_detail_screen.dart";
 
+
 class SchedulePreviewCard extends StatelessWidget {
+  late ChatRoom room;
+  SchedulePreviewCard(ChatRoom userRoomList, {super.key}) {
+    room = userRoomList;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => ScheduleScreen()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => ScheduleScreen(room.getRoomId())));
       },
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -20,14 +27,14 @@ class SchedulePreviewCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                "Title",
+                "${room.getRoomName()}",
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                "description",
+                "${room.getMode()}",
                 style: TextStyle(fontSize: 15),
               ),
-              Image.asset("assets/images/schedule_preview_sample.jpg")
+              Image.asset(room.getImg())
             ],
           ),
         ),

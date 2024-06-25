@@ -4,7 +4,7 @@ import 'package:promise_schedule/widgets/new_message.dart';
 import './schedule_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  late String roomid;
+  late final String roomid;
   ChatScreen(String id, {super.key}) {
     roomid = id;
   }

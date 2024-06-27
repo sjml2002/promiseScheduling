@@ -8,8 +8,6 @@ class ScheduleListScreen extends StatelessWidget {
     futureroomlist = userRoomList;
   }
 
-  final List<String> roomid = ['1', '2', '3', '4'];
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(

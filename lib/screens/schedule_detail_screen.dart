@@ -187,7 +187,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: _cols,
             childAspectRatio: MediaQuery.of(context).size.width /
-              (MediaQuery.of(context).size.height / 4),
+                (MediaQuery.of(context).size.height / 4),
           ),
           itemCount: _rows * _cols,
           itemBuilder: (context, index) {
@@ -269,7 +269,7 @@ class OtherScheduleContainer extends StatelessWidget {
       child: Center(
         child: userCnt > 0
             ? Text(
-                "Text($userCnt 명)",
+                "$userCnt 명",
                 style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -301,7 +301,7 @@ class MyScheduleContainer extends StatelessWidget {
       child: Center(
         child: userCnt > 0
             ? Text(
-                "Text($userCnt 명)",
+                "$userCnt 명",
                 style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

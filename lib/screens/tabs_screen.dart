@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:promise_schedule/screens/calendar_screen.dart';
 import 'package:promise_schedule/screens/chatting_list_screen.dart';
+import 'package:promise_schedule/screens/friend_list_screen.dart';
 import 'package:promise_schedule/screens/profile_screen.dart';
 import 'package:promise_schedule/screens/schedule_list_screen.dart';
+import 'package:promise_schedule/widgets/friend_add_top_modal.dart';
+import 'package:top_modal_sheet/top_modal_sheet.dart';
 
 class TabsScreen extends StatefulWidget {
   const TabsScreen({super.key});
@@ -20,37 +23,53 @@ class _TabsScreenState extends State<TabsScreen> {
     ScheduleListScreen(),
     ChatListScreen(),
     CalendarScreen(),
-    UserConfigScreen(),
+    FriendListScreen(),
   ];
 
-  final List<AppBar> _appBars = [
-    AppBar(
-      title: Text("언제 만나"),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.settings),
-        ),
-        IconButton(
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-            },
-            icon: const Icon(Icons.exit_to_app))
-      ],
-    ),
-    AppBar(
-      title: Text("달력"),
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
-    ),
-    AppBar(
-      title: Text("채팅 목록"),
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
-    ),
-    AppBar(
-      title: Text("친구 목록"),
-      actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
-    )
-  ];
+  AppBar _buildAppBar(BuildContext context) {
+    switch (_selectedPageIndex) {
+      case 0:
+        return AppBar(
+          title: Text("언제 만나"),
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.settings),
+            ),
+            IconButton(
+              onPressed: () {
+                FirebaseAuth.instance.signOut();
+              },
+              icon: const Icon(Icons.exit_to_app),
+            ),
+          ],
+        );
+      case 1:
+        return AppBar(
+          title: Text("달력"),
+          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+        );
+      case 2:
+        return AppBar(
+          title: Text("채팅 목록"),
+          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+        );
+      case 3:
+        return AppBar(
+          title: Text("친구 목록"),
+          actions: [
+            IconButton(onPressed: () {}, icon: Icon(Icons.settings)),
+            IconButton(
+                onPressed: () async {
+                  _showTopSheet(context); // 친구 추가 버튼을 눌렀을 때 호출
+                },
+                icon: Icon(Icons.person_add_alt_rounded)),
+          ],
+        );
+      default:
+        return AppBar(title: Text("언제 만나"));
+    }
+  }
 
   final List<String> _appBarTitles = [
     '약속 목록',
@@ -63,13 +82,17 @@ class _TabsScreenState extends State<TabsScreen> {
     Icons.list_outlined,
     Icons.chat,
     Icons.event,
-    Icons.settings,
+    Icons.people,
   ];
 
   void _selectPage(int index) {
     setState(() {
       _selectedPageIndex = index;
     });
+  }
+
+  void _showTopSheet(BuildContext context) async {
+    await showTopModalSheet(context, FriendAddSheet());
   }
 
   void _showModal(BuildContext context) {
@@ -111,7 +134,7 @@ class _TabsScreenState extends State<TabsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _appBars[_selectedPageIndex],
+      appBar: _buildAppBar(context),
       body: SafeArea(
         child: _pages[_selectedPageIndex],
       ),

@@ -12,7 +12,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MainApp());
+  runApp(ProviderScope(child: const MainApp()));
 }
 
 class MainApp extends StatelessWidget {
@@ -24,7 +24,8 @@ class MainApp extends StatelessWidget {
       home: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) { //로그인 성공
+          if (snapshot.hasData && snapshot.data != null) {
+            //로그인 성공
             User user = snapshot.data!;
             Future<List<ChatRoom>> tmplist = getUserInRoom(user.email);
             return TabsScreen(tmplist);

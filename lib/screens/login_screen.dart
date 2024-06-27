@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:promise_schedule/widgets/user_image_picker.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import "package:firebase_auth/firebase_auth.dart";
 import 'package:path_provider/path_provider.dart';
-import 'package:promise_schedule/screens/user_image_picker.dart';
 
-final _fireBase = FirebaseAuth.instance;
+final _firebase = FirebaseAuth.instance;
 
 Future<File> getImageFileFromAssets(String path) async {
   final byteData = await rootBundle.load('assets/$path');
@@ -22,6 +22,8 @@ Future<File> getImageFileFromAssets(String path) async {
 }
 
 class AuthScreen extends StatefulWidget {
+  const AuthScreen({super.key});
+
   @override
   State<AuthScreen> createState() {
     return _AuthScreenState();
@@ -29,193 +31,188 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool _loginMode = true;
+  final _form = GlobalKey<FormState>();
 
-  final _formKey = GlobalKey<FormState>();
-
-  String _enteredEmail = '';
-  String _enteredPassword = '';
-  String _enteredUsername = '';
-
+  var _isLogin = true;
+  var _enteredEmail = '';
+  var _enteredPassword = '';
+  var _enteredUsername = '';
   File? _selectedImage;
-  bool? _isAuthenticating;
-
-  void _selectUserImage(File imageFile) {
-    _selectedImage = imageFile;
-  }
+  var _isAuthenticating = false;
 
   void _submit() async {
-    final isValid = _formKey.currentState!.validate();
+    final isValid = _form.currentState!.validate();
 
-    if (isValid) {
-      _formKey.currentState!.save();
+    if (!isValid) {
+      return;
+    }
 
-      try {
-        if (_loginMode == true) {
-          final userCredential = await _fireBase.signInWithEmailAndPassword(
-              email: _enteredEmail, password: _enteredPassword);
-        } else {
-          if (_selectedImage == null) {
-            _selectedImage = await getImageFileFromAssets(
-                "images/schedule_preview_sample.jpg");
-          }
-          setState(() {
-            _isAuthenticating = true;
-          });
-          final userCredential = await _fireBase.createUserWithEmailAndPassword(
-              email: _enteredEmail, password: _enteredPassword);
+    _form.currentState!.save();
 
-          final storageRef = FirebaseStorage.instance
-              .ref()
-              .child('user_images')
-              .child('${userCredential.user!.uid}.jpg');
+    try {
+      setState(() {
+        _isAuthenticating = true;
+      });
+      if (_isLogin) {
+        final userCredentials = await _firebase.signInWithEmailAndPassword(
+            email: _enteredEmail, password: _enteredPassword);
+      } else {
+        final userCredentials = await _firebase.createUserWithEmailAndPassword(
+            email: _enteredEmail, password: _enteredPassword);
 
-          await storageRef.putFile(_selectedImage!);
-          final imageUrl = await storageRef.getDownloadURL();
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images')
+            .child('${userCredentials.user!.uid}.jpg');
 
-          FirebaseFirestore.instance
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .set({
-            'username': _enteredUsername,
-            'email': _enteredEmail,
-            'image_url': imageUrl
-          });
+        File defaultUserImage =
+            await getImageFileFromAssets('images/default_user_image.png');
+        File imageToUpload = _selectedImage ?? defaultUserImage;
 
-          setState(() {
-            _isAuthenticating = false;
-          });
-        }
-      } on FirebaseAuthException catch (error) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.message ?? 'Authentication failed.'),
-          ),
-        );
+        await storageRef.putFile(imageToUpload!);
+        final imageUrl = await storageRef.getDownloadURL();
 
-        setState(() {
-          _isAuthenticating = false;
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredentials.user!.uid)
+            .set({
+          'username': _enteredUsername,
+          'email': _enteredEmail,
+          'image_url': imageUrl,
+          'friend_list': []
         });
       }
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'email-already-in-use') {
+        // ...
+      }
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message ?? 'Authentication failed.'),
+        ),
+      );
+      setState(() {
+        _isAuthenticating = false;
+      });
     }
-  }
-
-  @override
-  void initState() {
-    _loginMode = true;
-    _isAuthenticating = false;
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       body: Center(
         child: SingleChildScrollView(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.only(
+                  top: 30,
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                ),
                 width: 200,
-                child: Image.asset("assets/images/schedule_preview_sample.jpg"),
+                child: Image.asset('assets/images/chat.png'),
               ),
-              Form(
-                  key: _formKey,
-                  child: Card(
-                    margin: const EdgeInsets.only(
-                        top: 15, left: 20, right: 20, bottom: 5),
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
+              Card(
+                margin: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _form,
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!_loginMode)
-                            UserImagePicker(selectUserImage: _selectUserImage),
-                          if (!_loginMode)
-                            TextFormField(
-                              decoration: InputDecoration(
-                                label: const Text("Username"),
-                                labelStyle:
-                                    const TextStyle().copyWith(fontSize: 15),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 10),
-                              ),
-                              keyboardType: TextInputType.text,
-                              enableSuggestions: false,
-                              validator: (value) {
-                                if (value == null || value.trim().length < 5) {
-                                  return "Username should be at least 5 characters";
-                                }
-                              },
-                              onSaved: (newValue) {
-                                _enteredUsername = newValue!;
+                          if (!_isLogin)
+                            UserImagePicker(
+                              onPickImage: (pickedImage) {
+                                _selectedImage = pickedImage;
                               },
                             ),
                           TextFormField(
-                            decoration: InputDecoration(
-                              label: const Text("Email"),
-                              labelStyle:
-                                  const TextStyle().copyWith(fontSize: 15),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
-                            ),
+                            decoration: const InputDecoration(
+                                labelText: 'Email Address'),
                             keyboardType: TextInputType.emailAddress,
-                            enableSuggestions: false,
+                            autocorrect: false,
+                            textCapitalization: TextCapitalization.none,
                             validator: (value) {
                               if (value == null ||
                                   value.trim().isEmpty ||
                                   !value.contains('@')) {
-                                return "Please enter a vaild email address";
+                                return 'Please enter a valid email address.';
                               }
+
+                              return null;
                             },
-                            onSaved: (newValue) {
-                              _enteredEmail = newValue!;
+                            onSaved: (value) {
+                              _enteredEmail = value!;
                             },
                           ),
+                          if (!_isLogin)
+                            TextFormField(
+                              decoration:
+                                  const InputDecoration(labelText: 'Username'),
+                              enableSuggestions: false,
+                              validator: (value) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    value.trim().length < 4) {
+                                  return 'Please enter at least 4 characters.';
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                _enteredUsername = value!;
+                              },
+                            ),
                           TextFormField(
-                            decoration: InputDecoration(
-                                label: const Text("Password"),
-                                labelStyle:
-                                    const TextStyle().copyWith(fontSize: 15),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5)),
+                            decoration:
+                                const InputDecoration(labelText: 'Password'),
                             obscureText: true,
                             validator: (value) {
                               if (value == null || value.trim().length < 6) {
-                                return "Password should be at least 6 characters";
+                                return 'Password must be at least 6 characters long.';
                               }
+                              return null;
                             },
-                            onSaved: (newValue) {
-                              _enteredPassword = newValue!;
+                            onSaved: (value) {
+                              _enteredPassword = value!;
                             },
                           ),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          _isAuthenticating!
-                              ? const CircularProgressIndicator()
-                              : FilledButton(
-                                  onPressed: () {
-                                    _submit();
-                                  },
-                                  child: Text(_loginMode ? "Login" : "Sign up"),
-                                ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _loginMode = !_loginMode;
-                              });
-                            },
-                            child: Text(_loginMode
-                                ? "Create an account"
-                                : "Already have an Account"),
-                          )
+                          const SizedBox(height: 12),
+                          if (_isAuthenticating)
+                            const CircularProgressIndicator(),
+                          if (!_isAuthenticating)
+                            ElevatedButton(
+                              onPressed: _submit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                              ),
+                              child: Text(_isLogin ? 'Login' : 'Signup'),
+                            ),
+                          if (!_isAuthenticating)
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isLogin = !_isLogin;
+                                });
+                              },
+                              child: Text(_isLogin
+                                  ? 'Create an account'
+                                  : 'I already have an account'),
+                            ),
                         ],
                       ),
                     ),
-                  ))
+                  ),
+                ),
+              ),
             ],
           ),
         ),

@@ -177,50 +177,50 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
       ),
       body: Column(children: [
         Expanded(
-          flex: 1,
-          child: Row(children: [
-            Expanded(
-              flex: 1,
-              child: Container(),
-            ),
-            Expanded(
-              flex: 7,
-              child: PageView(
-                children: [
-                  TableCalendar(
-                    headerStyle: const HeaderStyle(
-                      formatButtonVisible: false,
-                    ),
-                    firstDay: DateTime.utc(2020, 1, 1),
-                    lastDay: DateTime.utc(2030, 12, 31),
-                    focusedDay: _focusedDay,
-                    calendarFormat: _calendarFormat,
-                    selectedDayPredicate: (day) {
-                      return isSameDay(_selectedDay, day);
-                    },
-                    onDaySelected: (selectedDay, focusedDay) {
-                      setState(() {
-                        _selectedDay = selectedDay;
-                        _focusedDay =
-                            focusedDay; // update `_focusedDay` here as well
-                      });
-                    },
-                    onPageChanged: (focusedDay) {
-                      //timeMatrix를 전부 다 초기화한 후 새로운 시간 데이터 가져오기
-                      //inputTimeMatrix는 초기화 할까?
-                      setState(() {
-                        _focusedDay = focusedDay;
-                        _calendarPageChanged(focusedDay);
-                      });
-                    },
+            flex: 1,
+            child: Row(children: [
+                Expanded(
+                  flex: 1,
+                  child: Container(),
+                ),
+                Expanded(
+                  flex: 7,
+                  child: PageView(
+                    children: [
+                      TableCalendar(
+                        headerStyle: const HeaderStyle(
+                          formatButtonVisible: false,
+                        ),
+                        firstDay: DateTime.utc(2020, 1, 1),
+                        lastDay: DateTime.utc(2030, 12, 31),
+                        focusedDay: _focusedDay,
+                        calendarFormat: _calendarFormat,
+                        selectedDayPredicate: (day) {
+                          return isSameDay(_selectedDay, day);
+                        },
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+                            _selectedDay = selectedDay;
+                            _focusedDay =
+                                focusedDay; // update `_focusedDay` here as well
+                          });
+                        },
+                        onPageChanged: (focusedDay) {
+                          //timeMatrix를 전부 다 초기화한 후 새로운 시간 데이터 가져오기
+                          //inputTimeMatrix는 초기화 할까?
+                          setState(() {
+                            _focusedDay = focusedDay;
+                            _calendarPageChanged(focusedDay);
+                          });
+                        },
+                      ),
+                      // 페이지 뷰의 두 번째 페이지에 다른 화면을 추가할 수 있습니다.
+                      Center(child: Text('다른 페이지'))
+                    ],
                   ),
-                  // 페이지 뷰의 두 번째 페이지에 다른 화면을 추가할 수 있습니다.
-                  Center(child: Text('다른 페이지'))
-                ],
-              ),
-            )
-          ]),
-        ),
+                )
+              ]),
+            ),
         Expanded(
           flex: 5,
           child: GestureDetector(
@@ -266,14 +266,14 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
                   return Container(
                     margin: const EdgeInsets.all(1.0),
                     decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 204, 93, 93),
+                      color: const Color.fromARGB(255, 204, 93, 93),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Center(
                       child: Text(
                         _timesOfDay[rowIndex],
                         style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                       ),

@@ -33,34 +33,29 @@ class ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Chat List"),
-      ),
-      body: FutureBuilder(
-          future: widget.roomlist,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              List<ChatRoom> roomlist = snapshot.data!;
-              return SingleChildScrollView(
-                  child: Column(children: [
-                ListView.builder(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  itemCount: roomlist.length,
-                  itemBuilder: (context, idx) {
-                    return GestureDetector(
-                      onTap: () =>
-                          NavigationSet("chat_room", roomlist[idx].getRoomId()),
-                      child: ChatListCard(roomlist[idx]),
-                    );
-                  },
-                )
-              ]));
-            } else {
-              return (const Text("Loading..."));
-            }
-          }),
-    );
+    return FutureBuilder(
+        future: widget.roomlist,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            List<ChatRoom> roomlist = snapshot.data!;
+            return SingleChildScrollView(
+                child: Column(children: [
+              ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: roomlist.length,
+                itemBuilder: (context, idx) {
+                  return GestureDetector(
+                    onTap: () =>
+                        NavigationSet("chat_room", roomlist[idx].getRoomId()),
+                    child: ChatListCard(roomlist[idx]),
+                  );
+                },
+              )
+            ]));
+          } else {
+            return (const Text("Loading..."));
+          }
+        });
   }
 }

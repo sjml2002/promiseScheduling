@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:promise_schedule/screens/one_time_schdule_detail_screen.dart';
 import 'package:promise_schedule/widgets/chat_messages.dart';
 import 'package:promise_schedule/widgets/new_message.dart';
-import './schedule_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   late final String roomid;

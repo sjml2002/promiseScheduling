@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:promise_schedule/DAO/getUserRoom.dart';
-import 'package:promise_schedule/DTO/chat_room.dart';
+import 'package:promise_schedule/DTO/GlobalVariable.dart';
 import 'package:promise_schedule/screens/calendar_screen.dart';
 import 'package:promise_schedule/screens/chatting_list_screen.dart';
 import 'package:promise_schedule/screens/friend_list_screen.dart';
@@ -12,13 +10,11 @@ import 'package:promise_schedule/screens/profile_screen.dart';
 import 'package:promise_schedule/screens/schedule_list_screen.dart';
 import 'package:promise_schedule/widgets/friend_add_top_modal.dart';
 import 'package:top_modal_sheet/top_modal_sheet.dart';
+import 'package:provider/provider.dart';
 
 class TabsScreen extends StatefulWidget {
-  late Future<List<ChatRoom>> userRoomList;
-  String? userEmail = FirebaseAuth.instance.currentUser!.email;
-  TabsScreen(Future<List<ChatRoom>> roomlist, {super.key}) {
-    userRoomList = roomlist;
-  }
+  final String? userEmail = FirebaseAuth.instance.currentUser!.email;
+  TabsScreen({super.key});
 
   @override
   State<TabsScreen> createState() => _TabsScreenState();
@@ -29,8 +25,8 @@ class _TabsScreenState extends State<TabsScreen> {
   int _selectedPageIndex = 0;
 
   late final List<Widget> _pages = [
-    ScheduleListScreen(widget.userRoomList),
-    ChatListScreen(widget.userRoomList), //userRoomList
+    ScheduleListScreen(),
+    ChatListScreen(),
     CalendarScreen(),
     FriendListScreen(),
   ];
@@ -39,7 +35,7 @@ class _TabsScreenState extends State<TabsScreen> {
     switch (_selectedPageIndex) {
       case 0:
         return AppBar(
-          title: Text("언제 만나"),
+          title: const Text("언제 만나"),
           actions: [
             IconButton(
               onPressed: () {},
@@ -55,37 +51,30 @@ class _TabsScreenState extends State<TabsScreen> {
         );
       case 1:
         return AppBar(
-          title: Text("달력"),
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+          title: const Text("달력"),
+          actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.settings))],
         );
       case 2:
         return AppBar(
-          title: Text("채팅 목록"),
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+          title: const Text("채팅 목록"),
+          actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.settings))],
         );
       case 3:
         return AppBar(
-          title: Text("친구 목록"),
+          title: const Text("친구 목록"),
           actions: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.settings)),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.settings)),
             IconButton(
                 onPressed: () async {
                   _showTopSheet(context); // 친구 추가 버튼을 눌렀을 때 호출
                 },
-                icon: Icon(Icons.person_add_alt_rounded)),
+                icon: const Icon(Icons.person_add_alt_rounded)),
           ],
         );
       default:
         return AppBar(title: Text("언제 만나"));
     }
   }
-
-  final List<String> _appBarTitles = [
-    '약속 목록',
-    '채팅 목록',
-    '달력',
-    '내 정보',
-  ];
 
   final List<IconData> _floatingButtonIcons = [
     Icons.list_outlined,
@@ -147,7 +136,7 @@ class _TabsScreenState extends State<TabsScreen> {
 ////////// 방 만들기 ///////////
 
 class createRoom extends StatefulWidget {
-  String? userEmail = FirebaseAuth.instance.currentUser!.email;
+  final String? userEmail = FirebaseAuth.instance.currentUser!.email;
   createRoom({super.key});
 
   @override
@@ -161,7 +150,16 @@ class _createRoomState extends State<createRoom> {
   String modeOption = "정기모임";
   String roomname = '';
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future<void> searchUser(String userEmail) async {
+    if (userEmail == widget.userEmail) {
+      print("자기자신은 초대할 수 없음!");
+      return ;
+    }
     foundUsers = []; //초기화
 
     FirebaseFirestore.instance
@@ -184,7 +182,7 @@ class _createRoomState extends State<createRoom> {
     });
   }
 
-  Future<void> _createRoomOnFireStore() async {
+  Future<void> _createRoomOnFireStore(RoomListProvider rlp) async {
     if (roomname == '') {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('방 제목을 입력하세요.'),
@@ -198,6 +196,7 @@ class _createRoomState extends State<createRoom> {
       return;
     }
     //roomid 자동 지정
+    selectedUsers.add(widget.userEmail!); //자기 자신도 방에 들어가야함
     FirebaseFirestore.instance
         .collection('rooms')
         .add({
@@ -205,12 +204,13 @@ class _createRoomState extends State<createRoom> {
           'users': selectedUsers,
           'mode': modeOption,
         })
-        .then((value) => getUserInRoom(widget.userEmail))
+        .then((value) => rlp.getUserInRoom(widget.userEmail))
         .catchError((error) => print("create Room Error! $error"));
   }
 
   @override
   Widget build(BuildContext context) {
+  final roomListProvider = Provider.of<RoomListProvider>(context);
     return AlertDialog(
       title: const Text('약속의 옵션'),
       content: SingleChildScrollView(
@@ -342,7 +342,7 @@ class _createRoomState extends State<createRoom> {
         if (selectedUsers.isNotEmpty)
           ElevatedButton(
             onPressed: () {
-              _createRoomOnFireStore();
+              _createRoomOnFireStore(roomListProvider);
               Navigator.of(context).pop();
             },
             child: const Text('방 만들기'),

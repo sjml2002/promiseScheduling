@@ -3,6 +3,7 @@ import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.da
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:promise_schedule/DAO/getUserRoom.dart';
 import 'package:promise_schedule/DTO/chat_room.dart';
 import 'package:promise_schedule/screens/calendar_screen.dart';
 import 'package:promise_schedule/screens/chatting_list_screen.dart';
@@ -14,6 +15,7 @@ import 'package:top_modal_sheet/top_modal_sheet.dart';
 
 class TabsScreen extends StatefulWidget {
   late Future<List<ChatRoom>> userRoomList;
+  String? userEmail = FirebaseAuth.instance.currentUser!.email;
   TabsScreen(Future<List<ChatRoom>> roomlist, {super.key}) {
     userRoomList = roomlist;
   }
@@ -107,7 +109,7 @@ class _TabsScreenState extends State<TabsScreen> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          return const createRoom();
+          return createRoom();
         });
   }
 
@@ -145,7 +147,8 @@ class _TabsScreenState extends State<TabsScreen> {
 ////////// 방 만들기 ///////////
 
 class createRoom extends StatefulWidget {
-  const createRoom({super.key});
+  String? userEmail = FirebaseAuth.instance.currentUser!.email;
+  createRoom({super.key});
 
   @override
   _createRoomState createState() => _createRoomState();
@@ -202,7 +205,7 @@ class _createRoomState extends State<createRoom> {
           'users': selectedUsers,
           'mode': modeOption,
         })
-        .then((value) => print(value))
+        .then((value) => getUserInRoom(widget.userEmail))
         .catchError((error) => print("create Room Error! $error"));
   }
 

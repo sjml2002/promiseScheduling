@@ -21,6 +21,7 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  late String _weeks;
 
   String userId = FirebaseAuth.instance.currentUser!.uid;
   static const int _rows = 24;
@@ -60,6 +61,22 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+  @override
+  void initState() {
+    super.initState();
+    _weeks = _focusedWeeksChangedFormat();
+    searchScheduleData_onWeeks();
+  }
+
+  String _focusedWeeksChangedFormat() {
+    DateTime firstDay =
+        _focusedDay.subtract(Duration(days: _focusedDay.weekday));
+    DateTime lastDay = firstDay.add(const Duration(days: 6));
+    String ret =
+        "${DateFormat("yyyy-MM-dd").format(firstDay)}~${DateFormat("yyyy-MM-dd").format(lastDay)}";
+    return (ret);
+  }
+
   void selectUpdate(int r, int c) {
     setState(() {
       if (inputTimeMatrix[r][c] == 1) {
@@ -70,31 +87,80 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
     });
   }
 
-  void _calendarPageChanged() {
-    //timeMatrix 초기화
-    //inputTimeMatrix는 초기화 할지말지 고민
-    print("일단 되는지 확인");
+  void _calendarPageChanged(DateTime focusedDay) {
+    //Firebase Search 후 데이터 받아오기
+    _weeks = _focusedWeeksChangedFormat();
+    searchScheduleData_onWeeks(); //timeMatrix data 업데이트
   }
 
   void _passTimeMatrix() {
-    // 이거 빼도 될듯?
-    // if (_selectedDay == null) {
-    //   print("날짜 선택해 개쉐이야");
-    //   return;
-    // }
-    //get days
-    String dayformat = DateFormat("yyyy-MM-dd").format(_selectedDay!);
-    print(dayformat);
     //FireStore insert
-    // CollectionReference scheduleListCollection =
-    //     FirebaseFirestore.instance.collection('one_time_schedule_list');
-    // scheduleListCollection.doc(widget.roomid).set({
-    //   'user:$userId': json.encode(inputTimeArray),
-    //   'weeks': '24/06/17 ~ 24/06/23',
-    // }, SetOptions(merge: true)) //기존 필드값은 건들이지 않도록
-    //     .then((value) {
-    //   print("scheduling setting!"); //debug
-    // }).catchError((error) => print("Firebase add error: $error"));
+    CollectionReference scheduleListCollection = FirebaseFirestore.instance
+        .collection('one_time_schedule_list')
+        .doc(widget.roomid)
+        .collection('weeks');
+    scheduleListCollection
+        .doc(_weeks)
+        .set({
+          'user:$userId': json.encode(inputTimeMatrix),
+        }, SetOptions(merge: true)) //기존 필드값은 건들이지 않도록
+        .then((value) {})
+        .catchError((error) => print("Firebase add error: $error"));
+  }
+
+  //실제로 화면상에 보이는 schedule data를 업데이트 함
+  void searchScheduleData_onWeeks() {
+    Stream documentStream = FirebaseFirestore.instance
+        .collection("one_time_schedule_list")
+        .doc(widget.roomid)
+        .collection('weeks')
+        .doc(_weeks)
+        .snapshots();
+    documentStream.listen((event) {
+      //일단 초기화
+      List<List<int>> resultMatrix = [];
+      List<List<int>> resultInputMatrix = [];
+      for (int r = 0; r < _rows; r++) {
+        resultMatrix.add([]);
+        resultInputMatrix.add([]);
+        for (int c = 0; c < _cols; c++) {
+          resultMatrix[r].add(0);
+          resultInputMatrix[r].add(0);
+        }
+      }
+      //그 다음 event 읽기
+      if (event.exists) {
+        Map<String, dynamic> mapdata = event.data() as Map<String, dynamic>;
+        mapdata.forEach((key, value) {
+          if (key == "user:$userId") {
+            List<List<int>> resMatrix =
+                List_dynamic_to_Matrix(json.decode(value));
+            resultInputMatrix = resMatrix;
+          } else if (key.contains("user:")) {
+            List<List<int>> resMatrix =
+                List_dynamic_to_Matrix(json.decode(value));
+            for (int r = 0; r < _rows; r++) {
+              for (int c = 0; c < _cols; c++) {
+                resultMatrix[r][c] += resMatrix[r][c];
+              }
+            }
+          }
+        });
+      } else {
+        print("not yet...");
+      }
+      //받은 값으로 업데이트
+      setState(() {
+        inputTimeMatrix = resultInputMatrix;
+        timeMatrix = resultMatrix;
+      });
+    });
+  }
+
+  List<List<int>> List_dynamic_to_Matrix(List<dynamic> data) {
+    List<List<int>> ret =
+        data.map((innerList) => List<int>.from(innerList)).toList();
+    return (ret);
   }
 
   @override
@@ -142,8 +208,10 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
                     onPageChanged: (focusedDay) {
                       //timeMatrix를 전부 다 초기화한 후 새로운 시간 데이터 가져오기
                       //inputTimeMatrix는 초기화 할까?
-                      _calendarPageChanged();
-                      _focusedDay = focusedDay;
+                      setState(() {
+                        _focusedDay = focusedDay;
+                        _calendarPageChanged(focusedDay);
+                      });
                     },
                   ),
                   // 페이지 뷰의 두 번째 페이지에 다른 화면을 추가할 수 있습니다.
@@ -194,7 +262,7 @@ class _OneTimeScheduleScreenState extends State<OneTimeScheduleScreen> {
                 int c = index % _cols;
                 if ((index) % (_cols) == 0) {
                   // 첫 번째 열에 시간 표시
-                  int rowIndex = (index - 1) ~/ (_cols);
+                  int rowIndex = (index) ~/ (_cols);
                   return Container(
                     margin: const EdgeInsets.all(1.0),
                     decoration: BoxDecoration(

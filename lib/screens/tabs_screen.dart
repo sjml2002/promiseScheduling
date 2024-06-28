@@ -204,6 +204,8 @@ class _createRoomState extends State<createRoom> {
         })
         .then((value) => print(value))
         .catchError((error) => print("create Room Error! $error"));
+
+    // FirebaseFirestore.instance.collection("chat_rooms").
   }
 
   @override

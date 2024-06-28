@@ -27,13 +27,16 @@ class ChatScreenState extends State<ChatScreen> {
           if (details.primaryVelocity! < 0) {
             Navigator.of(context).pushReplacement(
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => ScheduleScreen(roomid),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    ScheduleScreen(roomid),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
                   const begin = Offset(1.0, 0.0);
                   const end = Offset.zero;
                   const curve = Curves.easeInOut;
 
-                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
                   var offsetAnimation = animation.drive(tween);
 
                   return SlideTransition(
@@ -46,7 +49,12 @@ class ChatScreenState extends State<ChatScreen> {
           }
         },
         child: Column(
-          children: [Expanded(child: ChatMessages()), NewMessage()],
+          children: [
+            Expanded(child: ChatMessages(chatRoomId: roomid)),
+            NewMessage(
+              roomId: roomid,
+            )
+          ],
         ),
       ),
     );

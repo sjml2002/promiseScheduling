@@ -206,6 +206,8 @@ class _createRoomState extends State<createRoom> {
         })
         .then((value) => rlp.getUserInRoom(widget.userEmail))
         .catchError((error) => print("create Room Error! $error"));
+
+    // FirebaseFirestore.instance.collection("chat_rooms").
   }
 
   @override

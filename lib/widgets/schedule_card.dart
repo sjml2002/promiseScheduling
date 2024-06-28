@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:promise_schedule/DTO/chat_room.dart";
+import "package:promise_schedule/screens/one_time_schdule_detail_screen.dart";
 import "package:promise_schedule/screens/schedule_detail_screen.dart";
-
 
 class SchedulePreviewCard extends StatelessWidget {
   late ChatRoom room;
@@ -13,8 +13,13 @@ class SchedulePreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ScheduleScreen(room.getRoomId())));
+        if (room.getMode() == "정기모임") {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => ScheduleScreen(room.getRoomId())));
+        } else if (room.getMode() == "일회성만남") {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => OneTimeScheduleScreen(room.getRoomId())));
+        }
       },
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),

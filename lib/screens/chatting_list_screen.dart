@@ -1,24 +1,26 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:promise_schedule/DTO/GlobalVariable.dart';
+import 'package:provider/provider.dart';
 import './chatting_room_screen.dart';
 import '../DTO/chat_room.dart';
 import 'package:promise_schedule/widgets/chat_list_card.dart';
 
 class ChatListScreen extends StatefulWidget {
-  late final Future<List<ChatRoom>> roomlist;
-  ChatListScreen(Future<List<ChatRoom>> futureroomlist, {super.key}) {
-    roomlist = futureroomlist;
-  }
+  const ChatListScreen({super.key});
 
+  @override
   ChatListScreenState createState() => ChatListScreenState();
 }
 
 class ChatListScreenState extends State<ChatListScreen> {
-  String jsondataUrl = "assets/json/chat_list_dummy_data.json";
+  String? userEmail = FirebaseAuth.instance.currentUser!.email;
 
   @override
   void initState() {
     super.initState();
+    //initState에 넣음으로써 Provider의 함수가 한번만 호출되도록 하기
+    Provider.of<RoomListProvider>(context, listen: false).getUserInRoom(userEmail);
   }
 
 /////////// Navigation //////////
@@ -33,29 +35,21 @@ class ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: widget.roomlist,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            List<ChatRoom> roomlist = snapshot.data!;
-            return SingleChildScrollView(
-                child: Column(children: [
-              ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: roomlist.length,
-                itemBuilder: (context, idx) {
-                  return GestureDetector(
-                    onTap: () =>
-                        NavigationSet("chat_room", roomlist[idx].getRoomId()),
-                    child: ChatListCard(roomlist[idx]),
-                  );
-                },
-              )
-            ]));
-          } else {
-            return (const Text("Loading..."));
-          }
-        });
+    final roomListProvider = Provider.of<RoomListProvider>(context);
+    List<ChatRoom> roomlist = roomListProvider.userRoomList;
+    return SingleChildScrollView(
+        child: Column(children: [
+      ListView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        itemCount: roomlist.length,
+        itemBuilder: (context, idx) {
+          return GestureDetector(
+            onTap: () => NavigationSet("chat_room", roomlist[idx].getRoomId()),
+            child: ChatListCard(roomlist[idx]),
+          );
+        },
+      )
+    ]));
   }
 }

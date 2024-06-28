@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:promise_schedule/screens/one_time_schdule_detail_screen.dart';
 import 'package:promise_schedule/widgets/chat_messages.dart';
 import 'package:promise_schedule/widgets/new_message.dart';
-import './schedule_detail_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   late final String roomid;
@@ -27,7 +27,7 @@ class ChatScreenState extends State<ChatScreen> {
           if (details.primaryVelocity! < 0) {
             Navigator.of(context).pushReplacement(
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => ScheduleScreen(roomid),
+                pageBuilder: (context, animation, secondaryAnimation) => OneTimeScheduleScreen(roomid),
                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                   const begin = Offset(1.0, 0.0);
                   const end = Offset.zero;
